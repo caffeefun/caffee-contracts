@@ -1,0 +1,33 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "src/TokenMetadata.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\n/*\n * TokenMetadata — fully on-chain image / description / socials for Caffee\n * fair-launch tokens on Robinhood Chain.\n *\n * Design: an ADDITIVE side-car registry. It does NOT replace or modify the\n * deployed CaffeeLaunch factory, so it introduces no registry fragmentation and\n * lets ALREADY-launched tokens (e.g. CTEST) be described too. Everything lives\n * on-chain: `data` is a UTF-8 JSON blob carrying the (compressed, client-side)\n * image as a data: URI plus text fields, e.g.\n *   {\"image\":\"data:image/webp;base64,…\",\"description\":\"…\",\n *    \"website\":\"…\",\"twitter\":\"…\",\"telegram\":\"…\"}\n * There is no backend, no IPFS, no off-chain storage of any kind.\n *\n * Authorization: only a token's original creator may set/update its metadata.\n * The creator is read from the token's bonding curve (CaffeeCurve.creator()),\n * looked up via CaffeeLaunch.curveOf(token).\n */\n\ninterface ICaffeeLaunch {\n    function curveOf(address token) external view returns (address curve);\n}\n\ninterface ICaffeeCurve {\n    function creator() external view returns (address);\n}\n\ncontract TokenMetadata {\n    /// The deployed CaffeeLaunch factory this registry authorizes against.\n    ICaffeeLaunch public immutable launchpad;\n\n    /// Hard cap on the stored blob. The client compresses logos to well under\n    /// this (≈128–256px webp); the cap only guards against storage griefing.\n    uint256 public constant MAX_BYTES = 32768; // 32 KB\n\n    /// token => on-chain JSON metadata blob.\n    mapping(address => string) public metadata;\n\n    event MetadataSet(address indexed token, address indexed creator, string data);\n\n    constructor(address _launchpad) {\n        require(_launchpad != address(0), \"LAUNCHPAD_ZERO\");\n        launchpad = ICaffeeLaunch(_launchpad);\n    }\n\n    /// Set or update `token`'s metadata. Caller MUST be the token's creator.\n    function set(address token, string calldata data) external {\n        require(bytes(data).length <= MAX_BYTES, \"TOO_BIG\");\n        address curve = launchpad.curveOf(token);\n        require(curve != address(0), \"NOT_LAUNCHED\");\n        require(msg.sender == ICaffeeCurve(curve).creator(), \"NOT_CREATOR\");\n        metadata[token] = data;\n        emit MetadataSet(token, msg.sender, data);\n    }\n\n    /// Batch read for directory/grid views: one call for many tokens\n    /// (empty string for tokens without metadata).\n    function getMany(address[] calldata tokens) external view returns (string[] memory out) {\n        out = new string[](tokens.length);\n        for (uint256 i = 0; i < tokens.length; i++) {\n            out[i] = metadata[tokens[i]];\n        }\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "metadata": {
+      "bytecodeHash": "ipfs",
+      "appendCBOR": true
+    },
+    "remappings": [],
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode.object",
+          "evm.deployedBytecode.object",
+          "metadata"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    }
+  }
+}
