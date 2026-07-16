@@ -27,7 +27,7 @@ The contracts in this repository, as deployed on **Robinhood Chain (chain id 466
   burned** (liquidity is locked, not withdrawable by the team). The only protocol fee is the 1% trading
   fee routed to the treasury.
 - **Audit status:** the contracts are **unaudited** — they have undergone internal review only, and a
-  **formal third-party audit is in progress**. Do not treat launched tokens as vetted or endorsed.
+  **formal third-party audit is planned but has not yet begun**. Do not treat launched tokens as vetted or endorsed.
 - **Known issue — graduation griefability:** anyone can pre-seed a token's Uniswap pair with dust so the
   pristine-pair check defers migration. The curve stays live and holders can always sell back, but the
   DEX migration can be delayed. Treat `graduated()` / the `Graduated` event as the authoritative

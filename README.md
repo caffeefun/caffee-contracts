@@ -119,7 +119,7 @@ Treasury (fee recipient)                0xd06bf16e78d15a511d7a8555bfb066a101df22
 
 ## Security
 
-Contracts are **unaudited** (internal review only; a formal audit is in progress). See
+Contracts are **unaudited** (internal review only; a formal audit is planned but has not yet begun). See
 [`SECURITY.md`](SECURITY.md) for responsible disclosure and known caveats.
 
 ## License
